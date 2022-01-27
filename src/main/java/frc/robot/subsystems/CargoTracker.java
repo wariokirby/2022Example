@@ -38,9 +38,11 @@ public class CargoTracker extends SubsystemBase {
     // This method will be called once per scheduler run
   }
 
-  public double findClosestCargo(){//returns how far off center in x direction
+  public int[] findClosestCargo(){//returns how far off center in x direction
+    int[] dirSize = new int[2];// 0 is direction to center of block, 1 is width of block
     if(blockCount <= 0){
-      return 200;
+      dirSize[0] = 200;
+      return dirSize;
     }
     ArrayList<Block> foundCargo = pixy.getCCC().getBlockCache();
     Block closestCargo = null;
@@ -53,7 +55,8 @@ public class CargoTracker extends SubsystemBase {
       }
     }//end for
 
-    int direction = closestCargo.getX() -  157;
-    return direction; 
+    dirSize[0] = closestCargo.getX() -  157;
+    dirSize[1] = closestCargo.getWidth();
+    return dirSize; 
   }//end findClosestCargo
 }//end class
