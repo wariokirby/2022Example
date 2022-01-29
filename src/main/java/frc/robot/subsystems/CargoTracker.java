@@ -32,7 +32,7 @@ public class CargoTracker extends SubsystemBase {
 
   @Override
   public void periodic() {
-    blockCount = pixy.getCCC().getBlocks(false , signature , 10);
+    blockCount = pixy.getCCC().getBlocks(false , signature , 11);
     SmartDashboard.putNumber("Targets Found", blockCount);
     
     // This method will be called once per scheduler run

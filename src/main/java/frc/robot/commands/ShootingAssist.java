@@ -5,54 +5,54 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.CargoTracker;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.TargetingSystem;
 import static frc.robot.Constants.*;
 
-public class AcquireCargoCommand extends CommandBase {
+public class ShootingAssist extends CommandBase {
   private Drivetrain drivetrain;
-  private CargoTracker tracker;
-  private int[] trackerData;
-  private final int SIZE_WHEN_CAUGHT = 20;//TODO need to measure this
-
-
-  /** Creates a new AcquireCargo. */
-  public AcquireCargoCommand(Drivetrain drivetrain , CargoTracker tracker) {
+  private TargetingSystem targetingSystem;
+  private Shooter shooter;
+  /** Creates a new ShootingAssist. */
+  public ShootingAssist(Drivetrain drivetrain , TargetingSystem targetingSystem , Shooter shooter) {
     this.drivetrain = drivetrain;
-    this.tracker = tracker;
-    trackerData = new int[2];
-
+    this.targetingSystem = targetingSystem;
+    this.shooter = shooter;
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drivetrain);
-    addRequirements(tracker);
+    addRequirements(targetingSystem);
+    addRequirements(shooter);
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    targetingSystem.ledControl(true);
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    trackerData = tracker.findClosestCargo();
-    if(trackerData[0] == 200){
-      drivetrain.drive(0, .5);
+    if(Math.abs(targetingSystem.getTargetX()) < 1){
+      drivetrain.stop();
+      shooter.shootAtRange(targetingSystem.calcRange());
     }
-    else if(Math.abs(trackerData[0]) > 2){//allow 2 degrees each direction, needs to be tuned
-      drivetrain.drive(1 * (1-(trackerData[1]/SIZE_WHEN_CAUGHT)) + MIN_DRIVE_POWER, 1 * (trackerData[0] / 157));//TODO need to tune gain values
+    else{
+      drivetrain.drive(0, 1 * (targetingSystem.getTargetX()/27.0) + MIN_TURN_POWER);
     }
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    drivetrain.drive(0, 0);
+    targetingSystem.ledControl(false);
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    if(trackerData[1] >= SIZE_WHEN_CAUGHT){
+    if(targetingSystem.getTargetArea() == 0){
       return true;
     }
     return false;

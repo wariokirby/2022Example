@@ -8,12 +8,11 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import frc.robot.commands.AcquireCargoCommand;
-import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.CargoTracker;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
@@ -29,11 +28,8 @@ public class RobotContainer {
   private final Drivetrain drivetrain = new Drivetrain();
   private final Shooter shooter = new Shooter();
   private final CargoTracker tracker = new CargoTracker(true);
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
 
-  private final AcquireCargoCommand acquireCommand = new AcquireCargoCommand(drivetrain, tracker);
-
-  private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
+   private final AcquireCargoCommand m_autoCommand = new AcquireCargoCommand(drivetrain , tracker);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -57,7 +53,9 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    new JoystickButton(xBox, Button.kA).whenPressed(acquireCommand(drivetrain , tracker));
+    new JoystickButton(xBox, Button.kA.value).whenPressed(new AcquireCargoCommand(drivetrain, tracker));//activate track and get cargo
+
+    new JoystickButton(xBox, Button.kB.value).whenPressed(new InstantCommand(drivetrain::stop , drivetrain));//stop the robot and shut down anything driving it other than the pilot
   }
 
   /**

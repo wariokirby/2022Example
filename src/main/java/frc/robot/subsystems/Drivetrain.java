@@ -80,4 +80,9 @@ public class Drivetrain extends SubsystemBase {
 	public double getRightEncoderDistance() {
 		return rightDriveEncoder.getDistance();
 	}
+
+  public void stop(){
+    leftDrive.stopMotor();
+    rightDrive.stopMotor();
+  }
 }

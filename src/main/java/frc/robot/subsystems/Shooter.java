@@ -59,9 +59,17 @@ public class Shooter extends PIDSubsystem {
    
   }
 
-  public void autoShooter(double targetFPS){
+  public void autoShooter(double targetRPS){
     SmartDashboard.putNumber("Shooter RPM", shooterEncoder.getRate() * 60.0);
-    setSetpoint(targetFPS);
+    setSetpoint(targetRPS);
+  }
+
+  public void shootAtRange(double range){
+    SmartDashboard.putNumber("Shooter RPM", shooterEncoder.getRate() * 60.0);
+    //This will eventually calculate how fast to spin the shooter or what angle to place the release plate
+    //for now it will spin at max speed.  
+    //TODO need to find max RPS, guessing 47
+    setSetpoint(47);
   }
 
   public Encoder getEncoder(){
