@@ -39,9 +39,15 @@ public class CargoTracker extends SubsystemBase {
   }
 
   public int[] findClosestCargo(){//returns how far off center in x direction
+    SmartDashboard.putString("Pixy Automation Status", "Enabled");
     int[] dirSize = new int[2];// 0 is direction to center of block, 1 is width of block
-    if(blockCount <= 0){
-      dirSize[0] = 200;
+    if(blockCount == 0){
+      dirSize[0] = 160;
+      return dirSize;
+    }
+    else if(blockCount < 0){
+      SmartDashboard.putString("Pixy Automation Status", "Disabled by Error");
+      dirSize[0] = -160;
       return dirSize;
     }
     ArrayList<Block> foundCargo = pixy.getCCC().getBlockCache();

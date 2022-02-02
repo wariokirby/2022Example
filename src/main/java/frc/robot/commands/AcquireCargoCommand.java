@@ -35,7 +35,7 @@ public class AcquireCargoCommand extends CommandBase {
   @Override
   public void execute() {
     trackerData = tracker.findClosestCargo();
-    if(trackerData[0] == 200){
+    if(trackerData[0] == 160){
       drivetrain.drive(0, .5);
     }
     else if(Math.abs(trackerData[0]) > 2){//allow 2 degrees each direction, needs to be tuned
