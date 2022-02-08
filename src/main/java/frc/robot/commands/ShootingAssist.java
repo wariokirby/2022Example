@@ -7,6 +7,7 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.ShooterGate;
 import frc.robot.subsystems.TargetingSystem;
 import static frc.robot.Constants.*;
 
@@ -14,15 +15,18 @@ public class ShootingAssist extends CommandBase {
   private Drivetrain drivetrain;
   private TargetingSystem targetingSystem;
   private Shooter shooter;
+  private ShooterGate gate;
   /** Creates a new ShootingAssist. */
-  public ShootingAssist(Drivetrain drivetrain , TargetingSystem targetingSystem , Shooter shooter) {
+  public ShootingAssist(Drivetrain drivetrain , TargetingSystem targetingSystem , Shooter shooter , ShooterGate gate) {
     this.drivetrain = drivetrain;
     this.targetingSystem = targetingSystem;
     this.shooter = shooter;
+    this.gate = gate;
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drivetrain);
     addRequirements(targetingSystem);
     addRequirements(shooter);
+    addRequirements(gate);
   }
 
   // Called when the command is initially scheduled.
@@ -34,6 +38,13 @@ public class ShootingAssist extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    //makes sure not to shoot before flywheel is ready
+    if(Math.abs(shooter.getMeasurement() - shooter.getSetpoint()) < 5){//in RPS TODO need to tune this
+      gate.open();
+    }
+    else{
+      gate.close();
+    }
 //this is for a fixed range shooter
     if(Math.abs(targetingSystem.getTargetX()) < 1 && Math.abs(targetingSystem.distanceToFixedRange()) < .25){//3 inches in either direction
       drivetrain.stop();

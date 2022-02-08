@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.sensors.PigeonIMU;
 
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
@@ -28,8 +29,15 @@ public class Drivetrain extends SubsystemBase {
   private Encoder leftDriveEncoder;
   private Encoder rightDriveEncoder;
 
+  private PigeonIMU imu;
+
+  private double[] ypr;
+
   /** Creates a new Drivetrain. */
   public Drivetrain() {
+    imu = new PigeonIMU(10);
+    ypr = new double[3];
+
     var leftFront = new WPI_TalonSRX(1);
 		var leftBack = new WPI_TalonSRX(2);
 		var leftTop = new WPI_TalonSRX(3);
@@ -54,6 +62,8 @@ public class Drivetrain extends SubsystemBase {
 
   @Override
   public void periodic() {
+    imu.getState();
+    imu.getYawPitchRoll(ypr);
     SmartDashboard.putNumber("Left Encoder Velocity", leftDriveEncoder.getRate());
 		SmartDashboard.putNumber("Right Encoder Velocity", rightDriveEncoder.getRate());
 		SmartDashboard.putNumber("Left Encoder Distance", leftDriveEncoder.getDistance());
@@ -80,6 +90,10 @@ public class Drivetrain extends SubsystemBase {
 	public double getRightEncoderDistance() {
 		return rightDriveEncoder.getDistance();
 	}
+
+  public double[] getYPR(){
+    return ypr;
+  }
 
   public void stop(){
     leftDrive.stopMotor();

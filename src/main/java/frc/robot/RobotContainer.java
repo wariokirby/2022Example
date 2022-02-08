@@ -11,15 +11,19 @@ import edu.wpi.first.wpilibj.XboxController.Button;
 import frc.robot.commands.AcquireCargoCommand;
 import frc.robot.commands.ShootingAssist;
 import frc.robot.subsystems.CargoTracker;
+import frc.robot.subsystems.Collector;
+import frc.robot.subsystems.Conveyor;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Shifter;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.ShooterGate;
 import frc.robot.subsystems.TargetingSystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.POVButton;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -36,6 +40,9 @@ public class RobotContainer {
   private final Drivetrain drivetrain = new Drivetrain();
   private final Shifter shifter = new Shifter(drivetrain);
   private final Shooter shooter = new Shooter();
+  private final Collector collector = new Collector();
+  private final Conveyor conveyor = new Conveyor();
+  private final ShooterGate gate = new ShooterGate();
   private final CargoTracker tracker = new CargoTracker(true);
   private final TargetingSystem targetingSystem = new TargetingSystem();
 
@@ -71,9 +78,28 @@ public class RobotContainer {
   private void configureButtonBindings() {
     new JoystickButton(throttle, 2).whenHeld(new AcquireCargoCommand(drivetrain, tracker));//activate track and get cargo
 
-    new JoystickButton(throttle, 1).whenHeld(new ShootingAssist(drivetrain, targetingSystem, shooter));//activate aim and spin shooter
+    new JoystickButton(throttle, 1).whenHeld(new ShootingAssist(drivetrain, targetingSystem, shooter , gate));//activate aim and spin shooter
 
-    new JoystickButton(xBox, Button.kB.value).whenPressed(new InstantCommand(drivetrain::stop , drivetrain));//stop the robot and shut down anything driving it other than the pilot
+    new JoystickButton(throttle, 3).whenPressed(new InstantCommand(drivetrain::stop , drivetrain));//stop the robot and shut down anything driving it other than the pilot
+
+    new JoystickButton(xBox, Button.kA.value).whenPressed(new RunCommand(collector::collect, collector));
+
+    new JoystickButton(xBox, Button.kB.value).whenPressed(new RunCommand(collector::reverse, collector));
+
+    new JoystickButton(xBox, Button.kX.value).whenPressed(new InstantCommand(collector::stop, collector));
+
+    new POVButton(xBox, 180)
+      .whenPressed(new InstantCommand(gate::open , gate))
+      .whenReleased(new InstantCommand(gate::close , gate));
+
+    new JoystickButton(xBox, Button.kRightBumper.value)
+      .whenPressed(new RunCommand(conveyor::up , conveyor))
+      .whenReleased(new InstantCommand(conveyor::stop , conveyor));
+
+    new JoystickButton(xBox, Button.kLeftBumper.value)
+      .whenPressed(new RunCommand(conveyor::down , conveyor))
+      .whenReleased(new InstantCommand(conveyor::stop , conveyor));
+
 
     new JoystickButton(prajBox, 2).whenHeld(new StartEndCommand(
       () -> shifter.setGear(true), 
