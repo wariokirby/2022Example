@@ -11,9 +11,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class TargetingSystem extends SubsystemBase {
-  private final double HEIGHT_OF_TARGET = 8.67;
-  private final double HEIGHT_OF_CAMERA = 4;//TODO set this to mount height
-  private final double MOUNT_ANGLE = 45;//TODO set this to mount angle
+  private final double HEIGHT_OF_TARGET = 8.67;//in ft
+  private final double HEIGHT_OF_CAMERA = 4;//in ft TODO set this to mount height
+  private final double MOUNT_ANGLE = 45;//in degrees TODO set this to mount angle
+  private final double FIXED_SHOOTING_RANGE = 10;//in ft TODO This will have to be measured assuming the shooter has a fixed range
   private NetworkTable limeLight;
   private NetworkTableEntry tx;
   private NetworkTableEntry ty;
@@ -71,6 +72,10 @@ public class TargetingSystem extends SubsystemBase {
   public double calcRange(){
     double d = (HEIGHT_OF_TARGET - HEIGHT_OF_CAMERA) / Math.tan(Math.toRadians(MOUNT_ANGLE + y));
     return d;
+  }
+
+  public double distanceToFixedRange(){//in case of fixed range shooter
+    return calcRange() - FIXED_SHOOTING_RANGE;
   }
  
 }

@@ -34,19 +34,33 @@ public class ShootingAssist extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if(Math.abs(targetingSystem.getTargetX()) < 1){
+//this is for a fixed range shooter
+    if(Math.abs(targetingSystem.getTargetX()) < 1 && Math.abs(targetingSystem.distanceToFixedRange()) < .25){//3 inches in either direction
+      drivetrain.stop();
+      shooter.shootAtRange(0);//if used, this argument would go away
+    }//end if
+    else{
+      drivetrain.drive((targetingSystem.distanceToFixedRange() / 5) + MIN_DRIVE_POWER, 1 * (targetingSystem.getTargetX()/27.0) + MIN_TURN_POWER);
+      //5 should be tuned to get the quickest usable reponse for moving to range
+    }//end else
+
+//This is in case we have a variable range shooter
+    /*if(Math.abs(targetingSystem.getTargetX()) < 1){
       drivetrain.stop();
       shooter.shootAtRange(targetingSystem.calcRange());
     }
     else{
       drivetrain.drive(0, 1 * (targetingSystem.getTargetX()/27.0) + MIN_TURN_POWER);
     }
+  }*/
+
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
     targetingSystem.ledControl(false);
+    shooter.manualOverride(0);
   }
 
   // Returns true when the command should end.

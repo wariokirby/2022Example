@@ -17,7 +17,7 @@ public class Shooter extends PIDSubsystem {
   private final int SHOOTER_ENCODER_CHANNEL_A = 4;
   private final int SHOOTER_ENCODER_CHANNEL_B = 5;
   //following is based on 2020 shooter, will have to modify for 2022
-  public static final double SHOOTER_RPS_MAX = 3000.0 / 60.0;
+  public static final double SHOOTER_RPS_MAX = 2800.0 / 60.0;
   public final double SHOOTER_FEEDFORWARD_KS = .05;//volts necessary to barely start the wheel rotating
   public final double SHOOTER_FEEDFORWARD_KV = 12.0 / SHOOTER_RPS_MAX; //volts to maintain a speed, calc based on 12V to maintain max speed
 
@@ -67,9 +67,9 @@ public class Shooter extends PIDSubsystem {
   public void shootAtRange(double range){
     SmartDashboard.putNumber("Shooter RPM", shooterEncoder.getRate() * 60.0);
     //This will eventually calculate how fast to spin the shooter or what angle to place the release plate
-    //for now it will spin at max speed.  
-    //TODO need to find max RPS, guessing 47
-    setSetpoint(47);
+    //for now it will spin at max speed. 
+    //if this ends up being a fixed range shooter, remove the argument and set max RPS to the requires speed 
+    setSetpoint(SHOOTER_RPS_MAX);
   }
 
   public Encoder getEncoder(){

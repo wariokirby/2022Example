@@ -5,15 +5,20 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import frc.robot.commands.AcquireCargoCommand;
+import frc.robot.commands.ShootingAssist;
 import frc.robot.subsystems.CargoTracker;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Shifter;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.TargetingSystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 /**
@@ -23,25 +28,36 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+  private final Joystick throttle = new Joystick(0);
+  private final Joystick wheel = new Joystick(1);
   private final XboxController xBox = new XboxController(2);
+  private final Joystick prajBox = new Joystick(3);
   // The robot's subsystems and commands are defined here...
   private final Drivetrain drivetrain = new Drivetrain();
+  private final Shifter shifter = new Shifter(drivetrain);
   private final Shooter shooter = new Shooter();
   private final CargoTracker tracker = new CargoTracker(true);
+  private final TargetingSystem targetingSystem = new TargetingSystem();
+
 
    private final AcquireCargoCommand m_autoCommand = new AcquireCargoCommand(drivetrain , tracker);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     drivetrain.setDefaultCommand(new RunCommand(
-      () -> drivetrain.drive(xBox.getLeftY() , xBox.getRightX()), 
+      () -> drivetrain.drive(-throttle.getY() , wheel.getX()), 
       drivetrain
     ));
 
-      shooter.setDefaultCommand(new RunCommand(
-        () -> shooter.manualOverride(xBox.getRightTriggerAxis()), 
-        shooter
-      ));
+    shifter.setDefaultCommand(new RunCommand(
+      () -> shifter.autoShift(),
+       shifter
+    ));
+
+    shooter.setDefaultCommand(new RunCommand(
+      () -> shooter.manualOverride(xBox.getRightTriggerAxis()), 
+      shooter
+    ));
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -53,9 +69,24 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    new JoystickButton(xBox, Button.kA.value).whenPressed(new AcquireCargoCommand(drivetrain, tracker));//activate track and get cargo
+    new JoystickButton(throttle, 2).whenHeld(new AcquireCargoCommand(drivetrain, tracker));//activate track and get cargo
+
+    new JoystickButton(throttle, 1).whenHeld(new ShootingAssist(drivetrain, targetingSystem, shooter));//activate aim and spin shooter
 
     new JoystickButton(xBox, Button.kB.value).whenPressed(new InstantCommand(drivetrain::stop , drivetrain));//stop the robot and shut down anything driving it other than the pilot
+
+    new JoystickButton(prajBox, 2).whenHeld(new StartEndCommand(
+      () -> shifter.setGear(true), 
+      shifter::autoShift, 
+      shifter
+      ));//manual set high gear
+
+    new JoystickButton(prajBox, 3).whenHeld(new StartEndCommand(
+      () -> shifter.setGear(false), 
+      shifter::autoShift, 
+      shifter
+      ));//manual set low gear
+   
   }
 
   /**
