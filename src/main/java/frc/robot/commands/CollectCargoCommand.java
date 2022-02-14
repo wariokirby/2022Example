@@ -6,62 +6,64 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.CargoTracker;
+import frc.robot.subsystems.Collector;
+import frc.robot.subsystems.Conveyor;
 import frc.robot.subsystems.Drivetrain;
-import static frc.robot.Constants.*;
+import frc.robot.subsystems.ShooterGate;
 
-public class AcquireCargoCommand extends CommandBase {
+public class CollectCargoCommand extends CommandBase {
   private Drivetrain drivetrain;
   private CargoTracker tracker;
+  private Collector collector;
+  private Conveyor conveyor;
+  private ShooterGate gate;
+
   private int[] trackerData;
-  private int timeCounter;
-  private final int SIZE_WHEN_CAUGHT = 20;//TODO need to measure this
+  private final int MIN_SIZE_WHEN_PRESENT = 18;//TODO need to measure this
 
-
-  /** Creates a new AcquireCargo. */
-  public AcquireCargoCommand(Drivetrain drivetrain , CargoTracker tracker) {
+  /** Creates a new CollectCargoCommand. */
+  public CollectCargoCommand(Drivetrain drivetrain , CargoTracker tracker , Collector collector , Conveyor conveyor , ShooterGate gate) {
     this.drivetrain = drivetrain;
     this.tracker = tracker;
+    this.collector = collector;
+    this.conveyor = conveyor;
+    this.gate = gate;
+
     trackerData = new int[2];
-    timeCounter = 0;//this is to bail out if it takes to long to find a ball
-    //each loop is 20ms so count how many 20ms periods before it should stop and shoot what it has
 
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drivetrain);
     addRequirements(tracker);
+    addRequirements(collector);
+    addRequirements(conveyor);
+    addRequirements(gate);
   }
+  
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    timeCounter = 0;
+    gate.close();
+   
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    timeCounter++;
     trackerData = tracker.findClosestCargo();
-    if(trackerData[0] == 160){
-      drivetrain.drive(0, .5);
-    }
-    else if(Math.abs(trackerData[0]) > 2){//allow 2 degrees each direction, needs to be tuned
-      drivetrain.drive(1 * (1-(trackerData[1]/SIZE_WHEN_CAUGHT)) + MIN_DRIVE_POWER, 1 * (trackerData[0] / 157));//TODO need to tune gain values
-    }
+    collector.collect();
+    conveyor.up();
+    drivetrain.drive(.25, 0);
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {
-    drivetrain.drive(0, 0);
-  }
+  public void end(boolean interrupted) {}
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    if(trackerData[1] >= SIZE_WHEN_CAUGHT){
-      return true;
-    }
-    if(timeCounter >= 500){//500 is 10 seconds leaving 5 seconds to shoot TODO figure out real timing
+    if(trackerData[1] < MIN_SIZE_WHEN_PRESENT){
       return true;
     }
     return false;

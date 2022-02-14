@@ -8,7 +8,12 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.commands.AcquireCargoCommand;
+import frc.robot.commands.CollectCargoCommand;
+import frc.robot.commands.DriveForwardCommand;
+import frc.robot.commands.FireCargoCommand;
 import frc.robot.commands.ShootingAssist;
 import frc.robot.subsystems.CargoTracker;
 import frc.robot.subsystems.Collector;
@@ -21,6 +26,7 @@ import frc.robot.subsystems.TargetingSystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
@@ -47,10 +53,31 @@ public class RobotContainer {
   private final TargetingSystem targetingSystem = new TargetingSystem();
 
 
-   private final AcquireCargoCommand m_autoCommand = new AcquireCargoCommand(drivetrain , tracker);
+  private final DriveForwardCommand driveForwardCommand = new DriveForwardCommand(drivetrain);
+  private final SequentialCommandGroup findBallAndShootCommand = new SequentialCommandGroup(
+    new AcquireCargoCommand(drivetrain , tracker) , 
+    new CollectCargoCommand(drivetrain, tracker, collector, conveyor, gate) , 
+    new ShootingAssist(drivetrain, targetingSystem, shooter, gate) , 
+    new FireCargoCommand(shooter, gate, conveyor)
+    );
+
+    SendableChooser<Command> autoChooser = new SendableChooser<>();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    autoChooser.setDefaultOption("Drive Forward", driveForwardCommand);
+    autoChooser.addOption("Find and Shoot", findBallAndShootCommand);
+
+    SmartDashboard.putData(autoChooser);
+
+    SmartDashboard.putData(drivetrain);
+    SmartDashboard.putData(tracker);
+    SmartDashboard.putData(collector);
+    SmartDashboard.putData(conveyor);
+    SmartDashboard.putData(shooter);
+    SmartDashboard.putData(gate);
+    SmartDashboard.putData(targetingSystem);
+
     drivetrain.setDefaultCommand(new RunCommand(
       () -> drivetrain.drive(-throttle.getY() , wheel.getX()), 
       drivetrain
@@ -122,6 +149,6 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
-    return m_autoCommand;
+    return autoChooser.getSelected();
   }
 }
